@@ -3,7 +3,7 @@
 import rospy
 from  sensor_msgs.msg import Image
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import PoseStamped,Pose
+from geometry_msgs.msg import PoseStamped,Pose,Twist
 import actionlib
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from actionlib_msgs.msg import GoalStatus
@@ -22,23 +22,21 @@ class Data:
         self.camera_subscriebr=rospy.Subscriber("/camera/image",Image,self.img_callback)
         self.depth_subscriber=rospy.Subscriber("/camera/image/compressedDepth",CompressedImage,self.compressed_depth_img)
         self.laser_2d_subscriber=rospy.Subscriber("/scan",LaserScan,self.lidar_2d_callback)
+        self.output_vel=rospy.Subscriber("/cmd_vel",Twist,self.self.cmd_vel_callback)
         
-        # self.goal_publish=rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
-        # self.goal=PoseStamped()
-        # self.goal.header.stamp=rospy.Time.now()    
-        # self.goal.header.frame_id="map"
-        # self.goal.pose.position.x =-4.560
-        # self.goal.pose.position.y =0.204
-        # self.goal.pose.position.z =0.0
-        # self.goal.pose.orientation.w=1.0
         self.client = actionlib.SimpleActionClient('move_base',MoveBaseAction)
-        # print(self.client)
-        # rospy.wait_for_service(self.client)
         rospy.loginfo('Waiting for the action client to start')
         self.client.wait_for_server()
         rospy.loginfo("Action client started")
         #self.client.wait_for_server(wait)
         self.movebase_action_client()
+    def cmd_vel_callback(self,msg):
+        cmd_vel_linear=np.zeros(2)
+        cmd_vel_linear[0]=msg.linear.x
+        cmd_vel_linear[1]=msg.linear.y
+        
+        cmd_vel_angular=msg.angular.z
+        
     def imu_callback(msg):
         imu_data= msg  
     def compressed_depth_img(self,msg):
@@ -63,7 +61,7 @@ class Data:
     def pose_callback(self,msg):
         # print('msg',msg)
         rospy.logwarn("Subscribed sucessfullly")
-        position=np.zeros(3)
+        position=np.zeros(2)
         position[0]=msg.pose.pose.position.x
         position[1]=msg.pose.pose.position.y
         
@@ -73,22 +71,19 @@ class Data:
         quaternion[2]=msg.pose.pose.orientation.z
         quaternion[3]=msg.pose.pose.orientation.w
         
-        linear_velocity=np.zeros(3)
+        linear_velocity=np.zeros(2)
         linear_velocity[0]=msg.twist.twist.linear.x
         linear_velocity[1]=msg.twist.twist.linear.y
         # linear_velocity[2]=msg.twist.twist.linear.z
-        angular_speed=np.zeros(3)
-        angular_speed[0]=msg.twist.twist.angular.x
-        angular_speed[1]=msg.twist.twist.angular.y
-        angular_speed[2]=msg.twist.twist.angular.z
+        # angular_speed=np.zeros(2)
+
+        angular_speed=msg.twist.twist.angular.z
         
-        print(angular_speed)
+        # print(angular_speed)
         
-        # quaternion[3]=msg.twist.twist.linear.w
         
     
-        # print(self.goal)
-        rospy.sleep(2)
+
     def movebase_action_client(self):
         self.goal=MoveBaseGoal()
         self.goal.target_pose.header.frame_id="map"
