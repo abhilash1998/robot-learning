@@ -1,0 +1,10 @@
+// #include <ros/ros.h>
+// #include <costmap_2d/costmap_2d_ros.h>
+// #include<costmap_2d/costmap_2d.h>
+
+// int main{
+//     ros::init(argv,argc,"map");
+//     ros::NodeHandle n;
+//     Costmap *2D;
+//     ros::Publisher map =
+// }
