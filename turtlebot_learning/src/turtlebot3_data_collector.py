@@ -129,6 +129,7 @@ class Data:
         
         
         
+        
         angular_speed=msg.twist.twist.angular.z
         # print(type(angular_speed))
         self.angular_speed=angular_speed
@@ -170,14 +171,15 @@ class Data:
             return self.goal_pose
     def feedback_action_server_callback(self,feedback):
         # rospy.loginfo(self.i) 
-        self.data['position'].append(self.position.tolist())
-        self.data['LaserScan'].append(self.laser_data)
-        self.data['orientation'].append(self.orientation)
-        self.data['Camera'].append(self.image_data.tolist())
-        self.data['cmd_vel'].append(self.cmd_vel_linear.tolist())
-        self.data['IMU'].append(self.imu_data.tolist())
-        self.data['linear_velocity'].append(self.linear_velocity.tolist())
-        self.data['angular_velocity'].append(self.angular_speed)
+        if self.cmd_vel_linear[1]!=0.0:
+            self.data['position'].append(self.position.tolist())
+            self.data['LaserScan'].append(self.laser_data)
+            self.data['orientation'].append(self.orientation)
+            self.data['Camera'].append(self.image_data.tolist())
+            self.data['cmd_vel'].append(self.cmd_vel_linear.tolist())
+            self.data['IMU'].append(self.imu_data.tolist())
+            self.data['linear_velocity'].append(self.linear_velocity.tolist())
+            self.data['angular_velocity'].append(self.angular_speed)
         
         # self.i=self.i+1
         # rospy.signal_shutdown()
@@ -191,8 +193,9 @@ class Data:
             file_name = self.data_dir+"trajectory_"+str(self.i)+'.json'
         # print(type(self.data))
         if len(self.data['cmd_vel'])>0:
-            with open(file_name,'w') as fout:
-                json.dumps(self.data,fout)
+            print('saving trajectory')
+            with open(file_name,'wb') as fout:
+                fout.write(json.dumps(self.data))
             
     def completed_action_callback(self,status,result):
         rospy.loginfo('status 3')
